@@ -27,3 +27,9 @@
 - 已增加便携网页启动器：`启动SEC Studio.sh`、`启动SEC Studio.command`、`启动SEC Studio.bat`、`启动SEC Studio.desktop`；需要本机 Python 3 和 `requirements.txt` 依赖。
 - Windows NSIS 和 macOS DMG 的构建配置已写入 `desktop/package.json`，但必须在对应平台构建和验证；当前 Linux 环境不能产出可验证的原生 Windows/macOS 安装包。
 - 当前工作区最初不是 Git 仓库，GitHub 发布前需初始化仓库并配置远程地址/认证。
+
+## GitHub 发布（2026-10-20）
+
+- 公开仓库：https://github.com/LiuSantu123/sec-studio
+- Release：`v0.1.0`，https://github.com/LiuSantu123/sec-studio/releases/tag/v0.1.0
+- Release 附件：Linux x86_64 AppImage 与 `sec-studio-0.1.0-source.tar.gz`。
