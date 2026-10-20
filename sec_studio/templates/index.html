@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SEC Studio — ÄKTA 分子筛曲线工作台</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo">▚</span>
+    <div>
+      <div class="brand-title">SEC Studio</div>
+      <div class="brand-sub">ÄKTA / UNICORN → 出版级 SEC 图</div>
+    </div>
+  </div>
+  <div class="actions">
+    <button class="btn" id="btn-load-folder" title="扫描数据文件夹中的 *.zip">📂 加载文件夹</button>
+    <button class="btn" id="btn-save-project">💾 保存项目</button>
+    <label class="btn file-btn">📁 打开项目
+      <input type="file" id="project-input" accept=".secproj,application/zip" hidden>
+    </label>
+    <label class="btn file-btn">⬆ 导入数据
+      <input type="file" id="file-input" accept=".zip,.csv,.tsv,text/csv,text/tab-separated-values" multiple hidden>
+    </label>
+    <button class="btn ghost" id="btn-clear">清空</button>
+    <span class="spacer"></span>
+    <button class="btn" id="btn-recolor">🎨 一键配色</button>
+    <button class="btn accent" id="btn-export-fig">⬇ 导出图片</button>
+    <button class="btn accent" id="btn-export-csv">⬇ 导出 CSV</button>
+  </div>
+</header>
+
+<main>
+  <!-- ─────────── left : datasets ─────────── -->
+  <aside class="panel left">
+    <h2>Runs <span class="count" id="run-count">0</span></h2>
+    <div id="dropzone" class="dropzone">拖拽 <b>ZIP / CSV / TSV</b> 到此处<br><small>CSV：一列 X 坐标，后续数值列为曲线</small></div>
+    <div id="run-list" class="run-list"></div>
+
+    <h2 class="mt">显示通道</h2>
+    <div class="channel-toggles" id="channel-toggles"></div>
+  </aside>
+
+  <!-- ─────────── center : preview ─────────── -->
+  <section class="stage">
+    <div class="preview-toolbar">
+      <span class="pill" id="status">就绪</span>
+      <label class="mini">预览 DPI <input type="number" id="preview-dpi" value="150" min="72" max="300" step="1"></label>
+      <label class="mini">缩放
+        <select id="preview-zoom">
+          <option value="fit">适应</option><option value="1">100%</option>
+          <option value="1.5">150%</option><option value="2">200%</option>
+        </select>
+      </label>
+      <span class="spacer"></span>
+      <label class="mini"><input type="checkbox" id="show-dim" checked> 显示尺寸标注</label>
+    </div>
+    <div class="preview-wrap" id="preview-wrap">
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">📈</div>
+        <p>还没有导入数据</p>
+        <small>导入 ÄKTA ZIP 或通用 CSV/TSV 曲线表</small>
+      </div>
+      <img id="preview" alt="preview" hidden>
+    </div>
+  </section>
+
+  <!-- ─────────── right : inspector ─────────── -->
+  <aside class="panel right">
+    <nav class="tabs" id="tabs">
+      <button data-tab="figure" class="active">图形</button>
+      <button data-tab="axes">坐标轴</button>
+      <button data-tab="curves">曲线</button>
+      <button data-tab="legend">图例</button>
+      <button data-tab="analysis">分析</button>
+      <button data-tab="screen">筛选</button>
+      <button data-tab="series">数据</button>
+    </nav>
+    <div class="panes" id="panes">
+      <div class="pane active" data-pane="figure"></div>
+      <div class="pane" data-pane="axes"></div>
+      <div class="pane" data-pane="curves"></div>
+      <div class="pane" data-pane="legend"></div>
+      <div class="pane" data-pane="analysis"></div>
+      <div class="pane" data-pane="screen"></div>
+      <div class="pane" data-pane="series"></div>
+    </div>
+  </aside>
+</main>
+
+<!-- ─────────── export figure modal ─────────── -->
+<div class="modal" id="modal-fig" hidden>
+  <div class="modal-card">
+    <h3>导出矢量 / 高分辨率图片</h3>
+    <div class="grid2">
+      <label>格式
+        <select id="fig-format">
+          <option value="pdf">PDF (矢量, 投稿首选)</option>
+          <option value="svg">SVG (矢量)</option>
+          <option value="png">PNG (位图)</option>
+          <option value="tiff">TIFF (印刷, 位图)</option>
+          <option value="jpg">JPG (位图)</option>
+        </select>
+      </label>
+      <label>DPI (位图有效)
+        <input type="number" id="fig-dpi" value="600" min="72" max="1200" step="50">
+      </label>
+      <label>文件名 <input type="text" id="fig-name" value="sec_figure"></label>
+      <label class="chk"><input type="checkbox" id="fig-transparent"> 透明背景</label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" data-close>取消</button>
+      <button class="btn" id="fig-batch">按 Run 批量 (ZIP)</button>
+      <button class="btn accent" id="fig-confirm">导出</button>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────── export csv modal ─────────── -->
+<div class="modal" id="modal-csv" hidden>
+  <div class="modal-card wide">
+    <h3>导出坐标数据 (CSV)</h3>
+    <div class="grid3">
+      <label>X 轴类型
+        <select id="csv-xkind">
+          <option value="volume">洗脱体积 (mL)</option>
+          <option value="time">时间 (min)</option>
+          <option value="cv">柱体积 (CV)</option>
+        </select>
+      </label>
+      <label>X 范围起 <input type="number" id="csv-xmin" step="0.1" placeholder="自动"></label>
+      <label>X 范围止 <input type="number" id="csv-xmax" step="0.1" placeholder="自动"></label>
+      <label>布局
+        <select id="csv-layout">
+          <option value="tidy">长表 (run, series, x, y)</option>
+          <option value="wide">宽表 (共享 x 网格, 每列一条)</option>
+        </select>
+      </label>
+      <label class="chk"><input type="checkbox" id="csv-processed" checked> 应用基线/平滑/归一化</label>
+      <label>文件名 <input type="text" id="csv-name" value="sec_data.csv"></label>
+    </div>
+    <div class="csv-series">
+      <div class="csv-series-head"><b>选择要导出的曲线</b>
+        <span><a href="#" id="csv-all">全选</a> / <a href="#" id="csv-none">全不选</a></span>
+      </div>
+      <div id="csv-series-list" class="csv-series-list"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn ghost" data-close>取消</button>
+      <button class="btn" id="csv-batch">按 Run 分别导出 (ZIP)</button>
+      <button class="btn accent" id="csv-confirm">导出</button>
+    </div>
+  </div>
+</div>
+
+<script>window.DATA_DIR = {{ data_dir|tojson }};</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

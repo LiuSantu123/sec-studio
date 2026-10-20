@@ -1,0 +1,7 @@
+[Desktop Entry]
+Type=Application
+Name=SEC Studio
+Comment=Start SEC Studio in your web browser
+Exec=bash -lc '"$(dirname "%k")/启动SEC Studio.sh"'
+Terminal=true
+Categories=Science;Education;

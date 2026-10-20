@@ -1,0 +1,64 @@
+{
+  "name": "sec-studio-desktop",
+  "version": "0.1.0",
+  "description": "Desktop application shell for SEC Studio",
+  "author": "SEC Studio",
+  "desktopName": "sec-studio",
+  "main": "main.cjs",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "build:engine": "node build-engine.cjs",
+    "package:linux": "npm run build:engine && electron-builder --linux AppImage",
+    "package:mac": "npm run build:engine && electron-builder --mac dmg",
+    "package:win": "npm run build:engine && electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^44.9.1",
+    "electron-builder": "^26.0.12"
+  },
+  "build": {
+    "appId": "org.secstudio.app",
+    "productName": "SEC Studio",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "main.cjs",
+      "build-engine.cjs",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "dist-engine/sec-studio-engine",
+        "to": "sec-studio-engine"
+      }
+    ],
+    "mac": {
+      "target": [
+        "dmg"
+      ],
+      "category": "public.app-category.science"
+    },
+    "win": {
+      "target": [
+        "nsis"
+      ]
+    },
+    "linux": {
+      "target": [
+        "AppImage"
+      ],
+      "category": "Science",
+      "syncDesktopName": true
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true
+    }
+  },
+  "allowScripts": {
+    "electron@44.9.1": true,
+    "electron-winstaller@5.4.0": true
+  }
+}

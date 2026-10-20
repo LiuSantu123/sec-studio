@@ -1,0 +1,10 @@
+sec_studio/desktop/node_modules/
+sec_studio/desktop/build-engine/
+sec_studio/desktop/dist-engine/
+sec_studio/desktop/release/
+__pycache__/
+*.pyc
+.pytest_cache/
+data/
+analysis_fmn/
+sec_studio/.run/
